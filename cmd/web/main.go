@@ -36,8 +36,21 @@ func main() {
 		ErrorLog: errorLog,
 		Wait:     &wg,
 	}
-	fmt.Println(app)
 
+	app.serve()
+
+}
+
+func (app *Config) serve() {
+	srv := &http.Server{
+		Addr:    fmt.Sprintf(":%s", webPort),
+		Handler: app.routes(),
+	}
+	app.InfoLog.Println("Starting web server...")
+	err := srv.ListenAndServe()
+	if err != nil {
+		log.Panic("Can't start server")
+	}
 }
 
 func initDB() *sql.DB {
