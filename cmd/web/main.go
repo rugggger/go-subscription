@@ -3,6 +3,7 @@ package main
 import (
 	"database/sql"
 	"fmt"
+	"go-subscription/data"
 	"log"
 	"net/http"
 	"os"
@@ -37,6 +38,7 @@ func main() {
 		InfoLog:  infoLog,
 		ErrorLog: errorLog,
 		Wait:     &wg,
+		Models:   data.New(db),
 	}
 
 	go app.listenForShutdown()
