@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"net/http"
 )
 
@@ -48,6 +49,10 @@ func (app *Config) PostLoginPage(w http.ResponseWriter, r *http.Request) {
 }
 
 func (app *Config) Logout(w http.ResponseWriter, r *http.Request) {
+	_ = app.Session.Destroy(r.Context())
+	_ = app.Session.RenewToken(r.Context())
+
+	http.Redirect(w, r, "/login", http.StatusSeeOther)
 
 }
 
@@ -56,7 +61,27 @@ func (app *Config) RegisterPage(w http.ResponseWriter, r *http.Request) {
 }
 
 func (app *Config) PostRegisterPage(w http.ResponseWriter, r *http.Request) {
+	// create user
+	_ = app.Session.RenewToken(r.Context())
+	err := r.ParseForm()
+	if err != nil {
+		app.ErrorLog.Println(err)
+	}
+	email := r.Form.Get("email")
+	password := r.Form.Get("password")
+	firstName := r.Form.Get("first-name")
+	lastName := r.Form.Get("last-name")
+
+	fmt.Println(email, password, firstName, lastName)
+	//user, err := app.Models.User.GetByEmail(email)
+	// send activation email
+	// subscribe to an acount
 }
 
 func (app *Config) ActivateAcount(w http.ResponseWriter, r *http.Request) {
+	// validate url
+
+	// generate invoice
+
+	// send an email with attachments
 }
