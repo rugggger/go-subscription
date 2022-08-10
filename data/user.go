@@ -3,9 +3,11 @@ package data
 import (
 	"context"
 	"errors"
-	"golang.org/x/crypto/bcrypt"
+	"fmt"
 	"log"
 	"time"
+
+	"golang.org/x/crypto/bcrypt"
 )
 
 // User is the structure which holds one user from the database.
@@ -317,6 +319,7 @@ func (u *User) PasswordMatches(plainText string) (bool, error) {
 			return false, err
 		}
 	}
+	fmt.Println("password good!")
 
 	return true, nil
 }
