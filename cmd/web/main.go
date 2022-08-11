@@ -60,7 +60,7 @@ func (app *Config) serve() {
 	app.InfoLog.Println("Starting web server...")
 	err := srv.ListenAndServe()
 	if err != nil {
-		log.Panic("Can't start server")
+		log.Panic("Can't start server", err)
 	}
 }
 
@@ -140,8 +140,15 @@ func (app *Config) listenForShutdown() {
 func (app *Config) shutdown() {
 	// clean
 	app.InfoLog.Println("cleanup tasks")
+
 	app.Wait.Wait()
+	app.Mailer.Wait.Wait()
+	app.Mailer.DoneChan <- true
+
 	app.InfoLog.Println("Closing channels and shutting down")
+	close(app.Mailer.MailerChan)
+	close(app.Mailer.ErrorChan)
+	close(app.Mailer.DoneChan)
 
 }
 
@@ -159,6 +166,7 @@ func (app *Config) createMail() Mail {
 		ErrorChan:   errorChan,
 		MailerChan:  mailerChan,
 		DoneChan:    doneChan,
+		Wait:        &sync.WaitGroup{},
 	}
 	return m
 
