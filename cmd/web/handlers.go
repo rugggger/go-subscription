@@ -2,6 +2,8 @@ package main
 
 import (
 	"fmt"
+	"go-subscription/data"
+	"html/template"
 	"net/http"
 )
 
@@ -73,15 +75,43 @@ func (app *Config) PostRegisterPage(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		app.ErrorLog.Println(err)
 	}
-	email := r.Form.Get("email")
-	password := r.Form.Get("password")
-	firstName := r.Form.Get("first-name")
-	lastName := r.Form.Get("last-name")
+	u := data.User{
+		Email:     r.Form.Get("email"),
+		Password:  r.Form.Get("password"),
+		FirstName: r.Form.Get("first-name"),
+		LastName:  r.Form.Get("last-name"),
+		Active:    0,
+		IsAdmin:   0,
+	}
 
-	fmt.Println(email, password, firstName, lastName)
+	fmt.Println(u)
+	// check if user exists
 	//user, err := app.Models.User.GetByEmail(email)
-	// send activation email
-	// subscribe to an acount
+
+	_, err = u.Insert(u)
+	if err != nil {
+		app.Session.Put(r.Context(), "error", "Unable to create user.")
+		http.Redirect(w, r, "/register", http.StatusSeeOther)
+		app.ErrorLog.Println(err)
+		return
+	}
+	url := fmt.Sprintf("http://localhost/activate?email=%s", u.Email)
+	signedURL := GenerateTokenFromString(url)
+	app.InfoLog.Println(signedURL)
+
+	msg := Message{
+		From:     "subscribe@example.com",
+		FromName: "Activate",
+		To:       u.Email,
+		Subject:  "Activate your account",
+		Data:     template.HTML(signedURL),
+		Template: "confirmation-email",
+	}
+
+	app.sendEmail(msg)
+
+	app.Session.Put(r.Context(), "flash", "Confirmation email sent.")
+	http.Redirect(w, r, "/login", http.StatusSeeOther)
 }
 
 func (app *Config) ActivateAcount(w http.ResponseWriter, r *http.Request) {
