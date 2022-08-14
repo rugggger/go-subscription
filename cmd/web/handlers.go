@@ -68,6 +68,24 @@ func (app *Config) RegisterPage(w http.ResponseWriter, r *http.Request) {
 	app.render(w, r, "register.page.gohtml", nil)
 }
 
+func (app *Config) ChooseSubscription(w http.ResponseWriter, r *http.Request) {
+	if !app.Session.Exists(r.Context(), "userID") {
+		app.Session.Put(r.Context(), "warning", "You must login to see this page.")
+		http.Redirect(w, r, "/login", http.StatusTemporaryRedirect)
+	}
+	plans, err := app.Models.Plan.GetAll()
+	if err != nil {
+		app.ErrorLog.Println("Cant get plans")
+		return
+	}
+	dataMap := make(map[string]any)
+	dataMap["plans"] = plans
+
+	app.render(w, r, "plans.page.gohtml", &TemplateData{
+		Data: dataMap,
+	})
+}
+
 func (app *Config) PostRegisterPage(w http.ResponseWriter, r *http.Request) {
 	// create user
 	_ = app.Session.RenewToken(r.Context())
