@@ -116,6 +116,45 @@ func (app *Config) PostRegisterPage(w http.ResponseWriter, r *http.Request) {
 
 func (app *Config) ActivateAcount(w http.ResponseWriter, r *http.Request) {
 	// validate url
+	url := r.RequestURI
+	testURL := fmt.Sprintf("http://localhost%s", url)
+	fmt.Println("test ", testURL)
+
+	okay := VerifyToken(testURL)
+	if !okay {
+		app.Session.Put(r.Context(), "error", "Invalid token")
+		http.Redirect(w, r, "/register", http.StatusSeeOther)
+		return
+	}
+
+	u, err := app.Models.User.GetByEmail(r.URL.Query().Get("email"))
+	if err != nil {
+		app.Session.Put(r.Context(), "error", "No user found")
+		http.Redirect(w, r, "/register", http.StatusSeeOther)
+		app.ErrorLog.Println(err)
+		return
+	}
+	u.Active = 1
+	err = u.Update()
+	if err != nil {
+		app.Session.Put(r.Context(), "error", "Unable to update user.")
+		http.Redirect(w, r, "/register", http.StatusSeeOther)
+		app.ErrorLog.Println(err)
+		return
+	}
+
+	app.Session.Put(r.Context(), "flash", "Account activated. You can now login")
+	http.Redirect(w, r, "/login", http.StatusSeeOther)
+
+	// msg := Message{
+	// 	To:       u.Email,
+	// 	FromName: u.FirstName,
+	// 	Subject:  "Successfuly subscrived",
+	// 	Data:     "User is now active",
+	// 	Template: "subscribed-email",
+	// }
+
+	// app.sendEmail(msg)
 
 	// generate invoice
 

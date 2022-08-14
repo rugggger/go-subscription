@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"sync"
 	"text/template"
@@ -115,7 +116,8 @@ func (m *Mail) buildHTMLMessage(msg Message) (string, error) {
 	templateToRender := fmt.Sprintf("./cmd/web/templates/%s.html.gohtml", msg.Template)
 	t, err := template.New("email-html").ParseFiles(templateToRender)
 	if err != nil {
-		return "", nil
+		fmt.Println("ni template found")
+		return "", errors.New("Could not create template")
 	}
 	var tpl bytes.Buffer
 	if err = t.ExecuteTemplate(&tpl, "body", msg.DataMap); err != nil {
